@@ -7,8 +7,11 @@ def handler(msg):
         f.write(msg + '\n')
 
 
+# TODO create PTT object
 ptt_bot = PTT.API(log_handler=handler)
 
+
+# TODO login
 try:
     ptt_bot.login("ponson", "jfNVir45")
 except PTT.exceptions.LoginError:
@@ -31,11 +34,18 @@ if ptt_bot.unregistered_user:
 if ptt_bot.registered_user:
     print('已註冊使用者')
 
-# call ptt_bot other api
+# TODO Search keywords to find the post number
 
+# call ptt_bot other api
+# TODO get post content
 post_info = ptt_bot.get_post(
     'Road_Running',
     post_index=35814)
+
+
+# TODO 資料整理，改成Data Frame存放，轉成CSV檔，方便查看
+# TODO 將資料標題、單行內容、連結丟到LINE chat bot上面通知使用者
+
 if post_info is None:
     print('post_info is None')
     sys.exit()
