@@ -35,9 +35,49 @@ if ptt_bot.registered_user:
     print('已註冊使用者')
 
 # TODO Search keywords to find the post number
+test_board_list = [
+    'KoreaDrama',
+    'marvel',
+    'MLB',
+    'Tech_Job',
+    'movie',
+]
 
+for test_board in test_board_list:
+    index = ptt_bot.get_newest_index(
+        PTT.data_type.index_type.BBS,
+        board=test_board
+    )
+    print(f'{test_board} 最新文章編號 {index}')
+'''
+test_list = [
+    ('KoreaDrama', PTT.data_type.post_search_type.KEYWORD, 'Arin')
+]
+for (test_board, search_type, condition) in test_list:
+    index = ptt_bot.get_newest_index(
+        PTT.data_type.index_type.BBS,
+        test_board,
+        search_type=search_type,
+        search_condition=condition,
+    )
+    print(f'{test_board} 最新文章編號 {index}')
+
+    post = ptt_bot.get_post(
+        test_board,
+        post_index=index,
+        search_type=search_type,
+        search_condition=condition,
+    )
+
+    print('標題:')
+    print(post.title)
+    print('內文:')
+    print(post.content)
+    print('=' * 50)
+'''
 # call ptt_bot other api
 # TODO get post content
+'''
 post_info = ptt_bot.get_post(
     'Road_Running',
     post_index=35814)
@@ -113,4 +153,5 @@ for push_info in post_info.push_list:
     print(buffer)
 
 print(f'Total {push_count} Pushs {boo_count} Boo {arrow_count} Arrow')
+'''
 ptt_bot.logout()
