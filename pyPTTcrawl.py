@@ -1,4 +1,6 @@
 from PyPtt import PTT
+import pandas as pd
+import numpy as np
 import sys
 
 
@@ -7,11 +9,11 @@ def handler(msg):
         f.write(msg + '\n')
 
 
-# TODO create PTT object
+# TODO create PTT object (done)
 ptt_bot = PTT.API(log_handler=handler)
 
 
-# TODO login
+# TODO login (done)
 try:
     ptt_bot.login("ponson", "jfNVir45")
 except PTT.exceptions.LoginError:
@@ -34,36 +36,47 @@ if ptt_bot.unregistered_user:
 if ptt_bot.registered_user:
     print('已註冊使用者')
 
-# TODO Search keywords to find the post number
-test_board_list = [
+my_board_list = [
     'KoreaDrama',
-    'marvel',
     'MLB',
-    'Tech_Job',
-    'movie',
+    'Road_Running'
 ]
+# TODO get last time index
+df_ltidx = pd.read_csv(r'output/newest_index.csv')
+print(df_ltidx)
 
-for test_board in test_board_list:
+# TODO to get the newest index of post
+
+my_board_newest_post_num = []
+
+for my_board in my_board_list:
     index = ptt_bot.get_newest_index(
         PTT.data_type.index_type.BBS,
-        board=test_board
+        board=my_board
     )
-    print(f'{test_board} 最新文章編號 {index}')
+    my_board_newest_post_num.append(index)
+    print(f'{my_board} 最新文章編號 {index}')
+
+print(my_board_newest_post_num)
+data = {"board_name": my_board_list, "newest_index": my_board_newest_post_num}
+df_bdnew = pd.DataFrame(data)
+print(df_bdnew)
+df_bdnew.to_csv(r'output/newest_index.csv', index=False)
 '''
 test_list = [
     ('KoreaDrama', PTT.data_type.post_search_type.KEYWORD, 'Arin')
 ]
-for (test_board, search_type, condition) in test_list:
+for (my_board, search_type, condition) in test_list:
     index = ptt_bot.get_newest_index(
         PTT.data_type.index_type.BBS,
-        test_board,
+        my_board,
         search_type=search_type,
         search_condition=condition,
     )
-    print(f'{test_board} 最新文章編號 {index}')
+    print(f'{my_board} 最新文章編號 {index}')
 
     post = ptt_bot.get_post(
-        test_board,
+        my_board,
         post_index=index,
         search_type=search_type,
         search_condition=condition,
@@ -77,6 +90,52 @@ for (test_board, search_type, condition) in test_list:
 '''
 # call ptt_bot other api
 # TODO get post content
+loop_cnt = 0
+for board_name in my_board_list:
+    start = df_ltidx.at[loop_cnt, "newest_index"] + 1
+    end = df_bdnew.at[loop_cnt, "newest_index"] + 1
+    print(f"start={start}, end={end}")
+    loop_cnt += 1
+    for index in range(start, end):
+        post_info = ptt_bot.get_post(
+            board_name,
+            post_index=index)
+        if post_info is None:
+            print('post_info is None')
+            continue
+        if post_info.delete_status != PTT.data_type.post_delete_status.NOT_DELETED:
+            if post_info.delete_status == PTT.data_type.post_delete_status.MODERATOR:
+                print(f'[板主刪除][{post_info.author}]')
+                continue
+            elif post_info.delete_status == PTT.data_type.post_delete_status.AUTHOR:
+                print(f'[作者刪除][{post_info.author}]')
+                continue
+            elif post_info.delete_status == PTT.data_type.post_delete_status.UNKNOWN:
+                print(f'[不明刪除]')
+                continue
+        if post_info.is_lock:
+            print('[鎖文]')
+            continue
+
+        if not post_info.pass_format_check:
+            print('[不合格式]')
+            continue
+        print('Board: ' + post_info.board)
+        print('AID: ' + post_info.aid)
+        print('index:' + str(post_info.index))
+        print('Author: ' + post_info.author)
+        print('Date: ' + post_info.date)
+        print('Title: ' + post_info.title)
+        print('content: ' + post_info.content)
+        print('Money: ' + str(post_info.money))
+        print('URL: ' + post_info.web_url)
+        print('IP: ' + post_info.ip)
+        # 在文章列表上的日期
+        print('List Date: ' + post_info.list_date)
+        print('地區: ' + post_info.location)
+        # Since 0.8.19
+        # 有可能為 None，因為不是每篇文在文章列表都有推文數
+        print('文章推文數: ' + post_info.push_number)
 '''
 post_info = ptt_bot.get_post(
     'Road_Running',
